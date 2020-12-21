@@ -1,13 +1,29 @@
 package com.example.game;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Sprite  {
-
+    public Sprite(double x, double y, double velocityX, double velocityY, Rect initialFrame, Bitmap bitmap){
+        this.x = x;
+        this.y = y;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.bitmap = bitmap;
+        this.frames = new ArrayList<Rect>();
+        this.frames.add(initialFrame);
+        this.timeForCurrentFrame = 0.0;
+        this.frameTime = 0.1;
+        this.currentFrame = 0;
+        this.frameWidth = initialFrame.width();
+        this.frameHeight = initialFrame.height();
+        this.padding = 20;
+    }
     public void setX(double x) {
         this.x = x;
     }
@@ -101,19 +117,34 @@ public class Sprite  {
 
 
 
-    public Sprite(double x, double y, double velocityX, double velocityY, Rect initialFrame, Bitmap bitmap){
-        this.x = x;
-        this.y = y;
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
-        this.bitmap = bitmap;
-        this.frames = new ArrayList<Rect>();
-        this.frames.add(initialFrame);
-        this.timeForCurrentFrame = 0.0;
-        this.frameTime = 0.1;
-        this.currentFrame = 0;
-        this.frameWidth = initialFrame.width();
-        this.frameHeight = initialFrame.height();
-        this.padding = 20;
+    public void update (int ms) {
+
+        timeForCurrentFrame += ms;
+
+        if (timeForCurrentFrame >= frameTime) {
+            currentFrame = (currentFrame + 1) % frames.size();
+            timeForCurrentFrame = timeForCurrentFrame - frameTime;
+        }
+
+        x = x + velocityX * ms/1000.0;
+        y = y + velocityY * ms/1000.0;
     }
+
+
+    public void draw (Canvas canvas) {
+        Paint p = new Paint();
+        Rect destination = new Rect((int)x, (int)y, (int)(x + frameWidth), (int)(y + frameHeight));
+        canvas.drawBitmap(bitmap, frames.get(currentFrame), destination,  p);
+    }
+
+
+    public Rect getBoundingBoxRect () {
+        return new Rect((int)x+padding, (int)y+padding, (int)(x + frameWidth - 2 *padding),
+                (int)(y + frameHeight - 2* padding));
+    }
+
+    public boolean intersect (Sprite s) {
+        return getBoundingBoxRect().intersect(s.getBoundingBoxRect());
+    }
+
 }
